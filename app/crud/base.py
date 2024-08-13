@@ -14,7 +14,7 @@ class CRUDBase:
             session: AsyncSession,
     ):
         db_obj = await session.execute(
-            self.model.select().where(
+            select(self.model).where(
                 self.model.id == obj_id
             )
         )

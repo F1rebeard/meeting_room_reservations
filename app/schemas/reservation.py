@@ -1,11 +1,22 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import (BaseModel, ConfigDict, Field,
+                      field_validator, model_validator)
+
+FROM_TIME = (
+        datetime.now() + timedelta(minutes=10)
+).isoformat(timespec='minutes')
+
+TO_TIME = (
+        datetime.now() + timedelta(hours=1)
+).isoformat(timespec='minutes')
 
 
 class ReservationBase(BaseModel):
-    from_reserve: datetime
-    to_reserve: datetime
+    from_reserve: datetime = Field(..., examples=[FROM_TIME])
+    to_reserve: datetime = Field(..., examples=[TO_TIME])
+
+    model_config = ConfigDict(extra='forbid')
 
 
 class ReservationUpdate(ReservationBase):
@@ -17,7 +28,7 @@ class ReservationUpdate(ReservationBase):
             raise ValueError('Время бронирование меньше текущего времени!')
         return value
 
-    @model_validator(mode='after')
+    @model_validator(mode='before')
     def check_from_reserve_before_to_reserve(cls, values):
         if values['from_reserve'] >= values['to_reserve']:
             raise ValueError(

@@ -2,7 +2,8 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.meeting_room import meeting_room_crud
-from app.models import MeetingRoom
+from app.crud.reservation import reservation_crud
+from app.models import MeetingRoom, Reservation
 
 
 async def check_name_duplicate(
@@ -31,3 +32,32 @@ async def check_meeting_room_exists(
             detail='Нет такой переговорки!'
         )
     return meeting_room
+
+
+async def check_reservation_intersections(**kwargs):
+    """
+    Валидация на пересечение времени бронирования переговорки. Если
+    есть пересечение, вызывает HTTPException c 422 и список пересеченных
+    переговорок.
+    """
+    reservations = await reservation_crud.get_reservations_at_the_same_time(
+        **kwargs
+    )
+    if reservations:
+        raise HTTPException(
+            status_code=422,
+            detail=str(reservations)
+        )
+
+
+async def check_reservation_before_edit(
+        reservation_id: int,
+        session: AsyncSession
+) -> Reservation:
+    reservation = await reservation_crud.get(reservation_id, session)
+    if not reservation:
+        raise HTTPException(
+            status_code=404,
+            detail='Нет такого бронирования!'
+        )
+    return reservation
