@@ -12,6 +12,8 @@ class MeetingRoomBase(BaseModel):
     )
     description: Optional[str] = Field(None)
 
+    model_config = ConfigDict(extra='forbid')
+
 
 class MeetingRoomCreate(MeetingRoomBase):
     name: str = Field(
