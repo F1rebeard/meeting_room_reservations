@@ -8,6 +8,7 @@ class Settings(BaseSettings):
         забронировал ли уже кто-то это помещение и свободно ли всё время,
         на которое бронируется эта переговорка."""
     database_url: str
+    secret: str = 'SECRET'
 
     model_config = SettingsConfigDict(
         env_file='.env'
