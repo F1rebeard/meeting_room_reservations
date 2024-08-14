@@ -5,7 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_session
 from app.api.validators import check_meeting_room_exists, \
     check_reservation_intersections, check_reservation_before_edit
 from app.core.db import get_async_session
+from app.core.user import current_user
 from app.crud.reservation import reservation_crud
+from app.models import User
 from app.schemas.reservation import ReservationDB, ReservationCreate, \
     ReservationUpdate
 
@@ -18,7 +20,8 @@ router = APIRouter()
 )
 async def create_reservation(
         reservation: ReservationCreate,
-        session: AsyncSession = Depends(get_async_session)
+        session: AsyncSession = Depends(get_async_session),
+        user: User = Depends(current_user),
 ):
     await check_meeting_room_exists(
         reservation.meetingroom_id,
@@ -27,7 +30,7 @@ async def create_reservation(
     await check_reservation_intersections(
         **reservation.model_dump(), session=session
     )
-    new_reservation = await reservation_crud.create(reservation, session)
+    new_reservation = await reservation_crud.create(reservation, session, user)
     return new_reservation
 
 
