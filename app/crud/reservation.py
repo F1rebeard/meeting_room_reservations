@@ -1,11 +1,13 @@
 from datetime import datetime
 from typing import Optional
 
+from fastapi.params import Depends
 from sqlalchemy import select, and_, Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.user import current_user
 from app.crud.base import CRUDBase
-from app.models.reservation import Reservation
+from app.models import Reservation, User
 
 class CRUDReservation(CRUDBase):
 
@@ -46,6 +48,19 @@ class CRUDReservation(CRUDBase):
         )
         reservations = reservations.scalars().all()
         return reservations
+
+    async def get_current_user_reservations(
+            self,
+            session: AsyncSession,
+            user: User,
+    ) -> Sequence[Reservation]:
+        user_reservations = await session.execute(
+            select(Reservation).where(
+                Reservation.user_id == user.id
+            )
+        )
+        user_reservations = user_reservations.scalars().all()
+        return user_reservations
 
 
 reservation_crud = CRUDReservation(Reservation)

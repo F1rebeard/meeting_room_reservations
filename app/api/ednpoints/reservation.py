@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_session
 from app.api.validators import check_meeting_room_exists, \
     check_reservation_intersections, check_reservation_before_edit
 from app.core.db import get_async_session
-from app.core.user import current_user
+from app.core.user import current_user, current_superuser
 from app.crud.reservation import reservation_crud
 from app.models import User
 from app.schemas.reservation import ReservationDB, ReservationCreate, \
@@ -36,11 +36,13 @@ async def create_reservation(
 
 @router.get(
     '/',
-    response_model=list[ReservationDB]
+    response_model=list[ReservationDB],
+    dependencies=[Depends(current_superuser)]
 )
 async def get_all_reservations(
         session: AsyncSession = Depends(get_async_session)
 ):
+    """Только для админов."""
     all_reservations = await reservation_crud.get_multi(session)
     return all_reservations
 
@@ -51,9 +53,11 @@ async def get_all_reservations(
 )
 async def delete_reservation(
         reservation_id: int,
-        session: AsyncSession = Depends(get_async_session)
+        session: AsyncSession = Depends(get_async_session),
+        user: User = Depends(current_user)
 ):
-    reservation = await check_reservation_before_edit(reservation_id, session)
+    reservation = await check_reservation_before_edit(
+        reservation_id, session, user)
     reservation = await reservation_crud.remove(reservation, session)
     return reservation
 
@@ -65,10 +69,11 @@ async def delete_reservation(
 async def update_reservation(
         reservation_id: int,
         obj_in: ReservationUpdate,
-        session: AsyncSession = Depends(get_async_session)
+        session: AsyncSession = Depends(get_async_session),
+        user: User = Depends(current_user)
 ):
     reservation = await check_reservation_before_edit(
-        reservation_id, session
+        reservation_id, session, user
     )
     await check_reservation_intersections(
         **obj_in.model_dump(),
@@ -82,3 +87,17 @@ async def update_reservation(
         session=session
     )
     return reservation
+
+
+@router.get(
+    '/my_reservations',
+    response_model=list[ReservationDB],
+    response_model_exclude={'user_id'}
+)
+async def get_my_reservations(
+        user: User = Depends(current_user),
+        session: AsyncSession = Depends(get_async_session)):
+    my_reservations = await reservation_crud.get_current_user_reservations(
+        session=session, user=user
+    )
+    return my_reservations
