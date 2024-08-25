@@ -12,14 +12,15 @@ class CRUDMeetingRoom(CRUDBase):
     async def get_room_id_by_name(
             self,
             room_name: str,
-            session: AsyncSession,
+            async_session: AsyncSession,
     ) -> Optional[int]:
-        db_room_id = await session.execute(
+        db_room_id = await async_session.execute(
             select(self.model.id).where(
                 self.model.name == room_name
             )
         )
         db_room_id = db_room_id.scalars().first()
         return db_room_id
+
 
 meeting_room_crud = CRUDMeetingRoom(MeetingRoom)

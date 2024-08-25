@@ -55,6 +55,9 @@ async def check_reservation_before_edit(
         session: AsyncSession,
         user: User,
 ) -> Reservation:
+    """
+    Проверка на наличие такой переговорки и проверка на своё бронирование.
+    """
     reservation = await reservation_crud.get(reservation_id, session)
     if not reservation:
         raise HTTPException(

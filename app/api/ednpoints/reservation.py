@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from fastapi.params import Depends
-from sqlalchemy.ext.asyncio import AsyncSession, async_session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.validators import check_meeting_room_exists, \
     check_reservation_intersections, check_reservation_before_edit

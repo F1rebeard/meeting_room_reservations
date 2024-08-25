@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <style>
+        /* Resetting some basic styles */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        /* Container for chat application */
+        .chat-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Message list styling */
+        #messages {
+            list-style: none;
+            padding: 0;
+            max-height: 300px;
+            overflow-y: auto; /* Allows scrolling for long messages */
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fafafa;
+        }
+
+        /* Each message styling */
+        #messages li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* Last message styling */
+        #messages li:last-child {
+            border-bottom: none;
+        }
+
+        /* Input and button styling */
+        .input-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .chat-container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            input[type="text"] {
+                margin-right: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Чат переговорной комнаты {{ meeting_room_id }} </h1>
+        <h2>Your ID: <span id="ws-id"></span></h2>
+        <ul id='messages'></ul>
+        <div class="input-container">
+            <input type="text" id="messageText" autocomplete="off" placeholder="Type your message here..." />
+            <button type="submit" onclick="sendMessage(event)">Send</button>
+        </div>
+    </div>
+    <script>
+        let client_id = '{{ user.username }}'
+        let meeting_room_id = '{{ meeting_room_id }}'
+
+        async function getLastMessages() {
+            const url = `//127.0.0.1:8001/chat/${meeting_room_id}/last_messages`
+            const response = await fetch(url, {
+                method: 'GET'
+            })
+            return response.json()
+        }
+
+        getLastMessages()
+            .then(messages => {
+                appendMessage('Последние 7 сообщений:')
+                messages.forEach(msg => {
+                    appendMessage(msg.message)
+                })
+                appendMessage('\nНовые сообщения:')
+            })
+
+        function appendMessage(msg) {
+            let messages = document.getElementById('messages')
+            let message = document.createElement('li')
+            let content = document.createTextNode(msg)
+            message.appendChild(content)
+            messages.appendChild(message)
+        }
+
+        document.querySelector("#ws-id").textContent = client_id
+        let ws = new WebSocket(
+            `ws://127.0.0.1:8001/chat/${meeting_room_id}/ws/${client_id}`);
+        ws.onmessage = function(event) {
+            appendMessage(event.data)
+        };
+        function sendMessage(event) {
+            let input = document.getElementById("messageText")
+            ws.send(input.value)
+            input.value = ''
+            event.preventDefault()
+        }
+    </script>
+</body>
+</html>
