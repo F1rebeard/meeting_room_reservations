@@ -1,5 +1,7 @@
 import os
 from dotenv import load_dotenv
+
+from fastapi.templating import Jinja2Templates
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,6 +13,7 @@ DB_HOST = os.getenv('DB_HOST')
 DB_PORT = os.getenv('DB_PORT')
 DB_NAME = os.getenv('DB_NAME')
 
+templates = Jinja2Templates(directory="app/templates")
 
 class Settings(BaseSettings):
     app_title: str = 'Бронирование переговорных комнатя для предприятия'

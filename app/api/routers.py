@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 
 from app.api.ednpoints import (meeting_room_router, reservation_router,
                                user_router, chat_router)
-from app.api.ednpoints.chat import templates
+
 
 api_main_router = APIRouter()
 api_main_router.include_router(

@@ -3,9 +3,9 @@ from datetime import datetime
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Request, \
     WebSocketException
 from fastapi.params import Depends
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import templates
 from app.core.db import get_async_session
 from app.core.user import current_user, get_user_manager, auth_backend
 from app.crud.message import message_crud
@@ -36,7 +36,7 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-templates = Jinja2Templates(directory="app/templates")
+
 
 
 async def get_user_from_cookies(
